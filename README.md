@@ -1,4 +1,4 @@
-# [*Arxiv 2024*] StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting
+# [*SIGGRAPH Asia 2024 (Technical Communications)*] StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting
 
 ## [Project page](https://kunhao-liu.github.io/StyleGaussian/) |  [Paper](https://arxiv.org/abs/2403.07807)
 
