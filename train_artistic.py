@@ -31,6 +31,22 @@ import numpy as np
 from scene.VGG import VGGEncoder, normalize_vgg
 from utils.loss_utils import cal_adain_style_loss, cal_mse_content_loss
 
+# def getDataLoader(dataset_path, batch_size, sampler, image_side_length=256, num_workers=2):
+#     transform = T.Compose([
+#                 T.Resize(size=(image_side_length*2, image_side_length*2)),
+#                 T.RandomCrop(image_side_length),
+#                 T.ToTensor(),
+#             ])
+
+#     train_dataset = datasets.ImageFolder(dataset_path, transform=transform)
+#     dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler(len(train_dataset)), num_workers=num_workers)
+
+#     return dataloader
+def worker_init_fn(worker_id):
+    from PIL import ImageFile
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+    
 def getDataLoader(dataset_path, batch_size, sampler, image_side_length=256, num_workers=2):
     transform = T.Compose([
                 T.Resize(size=(image_side_length*2, image_side_length*2)),
@@ -39,7 +55,13 @@ def getDataLoader(dataset_path, batch_size, sampler, image_side_length=256, num_
             ])
 
     train_dataset = datasets.ImageFolder(dataset_path, transform=transform)
-    dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler(len(train_dataset)), num_workers=num_workers)
+    dataloader = DataLoader(
+        train_dataset, 
+        batch_size=batch_size, 
+        sampler=sampler(len(train_dataset)), 
+        num_workers=num_workers,
+        worker_init_fn=worker_init_fn
+    )
 
     return dataloader
 

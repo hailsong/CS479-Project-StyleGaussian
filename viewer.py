@@ -137,7 +137,8 @@ class ViserViewer:
         def _(_):
             self.need_update = True
             self.display_interpolation = False
-            style_img_path = self.style_img_path_text.value
+            # style_img_path = self.style_img_path_text.value
+            style_img_path = str(self.style_img_path_text.value)
             # read style image and extract features
             trans = T.Compose([T.Resize(size=(256,256)), T.ToTensor()])
             style_img = trans(Image.open(style_img_path)).cuda()[None, :3, :, :]
@@ -159,8 +160,10 @@ class ViserViewer:
             @self.random_style_button.on_click
             def _(_):
                 self.need_update = True
+                # style_img_path = np.random.choice(wikiart_img_paths)
+                # self.style_img_path_text.value = style_img_path
                 style_img_path = np.random.choice(wikiart_img_paths)
-                self.style_img_path_text.value = style_img_path
+                self.style_img_path_text.value = str(style_img_path)
 
         @self.style_path_1.on_update
         def _(_):

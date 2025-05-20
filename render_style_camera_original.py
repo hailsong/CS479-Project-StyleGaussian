@@ -1,7 +1,15 @@
 # USAGE !!
-# python render_style_camera_interpolate.py -m output/test_images/artistic/default --style_img_path images/1.jpg --target_style_img_path images/2.jpg --view_id_start 0 --view_id_end 10 --steps 150
-# ffmpeg -framerate 24 -i ./output/test_images/artistic/default/camera_style_interpolation_3/%04d.png -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -c:v libx264 -pix_fmt yuv420p output.mp4
-
+'''
+python render_style_camera_original.py \
+  -m output/n1statue/artistic/default \
+  --style_img_path images/5.jpg \
+  --target_style_img_path images/0.jpg \
+  --steps 121
+  --interp_per_cam 5
+'''
+'''
+ffmpeg -framerate 24 -i ./output/n1statue/artistic/default/camera_style_interpolation_5_0/%04d.png -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -c:v libx264 -pix_fmt yuv420p output.mp4
+'''
 
 import torch
 import torchvision
@@ -26,87 +34,80 @@ from argparse import ArgumentParser
 
 
 
-def render_sets_style_camera_interpolate(dataset : ModelParams, pipeline : PipelineParams, style_img_path, view_id_start=0, view_id_end=10, steps=10, target_style_img_path=None):
+def render_sets_style_camera_interpolate(dataset: ModelParams, pipeline: PipelineParams, style_img_path, steps=10, interp_per_cam=5, target_style_img_path=None):
     with torch.no_grad():
         gaussians = GaussianModel(dataset.sh_degree)
         ckpt_path = os.path.join(dataset.model_path, "chkpnt/gaussians.pth")
         scene = Scene(dataset, gaussians, load_path=ckpt_path, shuffle=False, style_model=True)
 
-        # read style image
-        trans = T.Compose([T.Resize(size=(256,256)), T.ToTensor()])
+        trans = T.Compose([T.Resize(size=(256, 256)), T.ToTensor()])
         style_img = trans(Image.open(style_img_path)).cuda()[None, :3, :, :]
-        style_name = Path(style_img_path).stem
+        style_index = Path(style_img_path).stem
+
         vgg_encoder = VGGEncoder().cuda()
         style_img_features = vgg_encoder(normalize_vgg(style_img))
 
         bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
-        render_path = os.path.join(dataset.model_path, f"camera_style_interpolation_{style_name}")
-        os.makedirs(render_path, exist_ok=True)
-
-        # Style transfer
-        transfered_features = gaussians.style_transfer(
-            gaussians.final_vgg_features.detach(),
-            style_img_features.relu3_1,
-        )
-
-        # Optional: target style
         if target_style_img_path is not None:
             target_style_img = trans(Image.open(target_style_img_path)).cuda()[None, :3, :, :]
+            target_index = Path(target_style_img_path).stem
             target_style_features = vgg_encoder(normalize_vgg(target_style_img))
-            target_transfered_features = gaussians.style_transfer(
-                gaussians.final_vgg_features.detach(),
-                target_style_features.relu3_1,
-            )
-            start_feature = transfered_features
-            end_feature = target_transfered_features
+            start_feature = gaussians.style_transfer(gaussians.final_vgg_features.detach(), style_img_features.relu3_1)
+            end_feature = gaussians.style_transfer(gaussians.final_vgg_features.detach(), target_style_features.relu3_1)
         else:
+            target_index = "base"
             start_feature = gaussians.final_vgg_features
-            end_feature = transfered_features
+            end_feature = gaussians.style_transfer(gaussians.final_vgg_features.detach(), style_img_features.relu3_1)
 
-        # ---- 이하 나머지는 interpolation만 수정 ----
-        view_start = scene.getTrainCameras()[view_id_start]
-        view_end = scene.getTrainCameras()[view_id_end]
+        render_path = os.path.join(dataset.model_path, f"camera_style_interpolation_{style_index}_{target_index}")
+        os.makedirs(render_path, exist_ok=True)
 
-        R_start = torch.tensor(view_start.R, device="cuda")
-        T_start = torch.tensor(view_start.T, device="cuda")
-        R_end = torch.tensor(view_end.R, device="cuda")
-        T_end = torch.tensor(view_end.T, device="cuda")
+        cameras = scene.getTrainCameras()
+        cam_count = len(cameras)
+        total_frames = (cam_count - 1) * interp_per_cam
 
-        v = torch.linspace(0, 1, steps=steps)
-        v = torch.linspace(0, 1, steps=steps)
+        for i in tqdm(range(total_frames), desc="Rendering camera+style interpolation"):
+            cam_idx = i // interp_per_cam
+            alpha = (i % interp_per_cam) / interp_per_cam
 
-        for i in tqdm(range(steps), desc="Rendering interpolated views"):
-            alpha = v[i]
+            cam0 = cameras[cam_idx]
+            cam1 = cameras[cam_idx + 1]
 
-            # interpolate features
-            features_interp = (1 - alpha) * start_feature + alpha * end_feature
+            R0 = torch.tensor(cam0.R, device="cuda")
+            T0 = torch.tensor(cam0.T, device="cuda")
+            R1 = torch.tensor(cam1.R, device="cuda")
+            T1 = torch.tensor(cam1.T, device="cuda")
+
+            R_interp = (1 - alpha) * R0 + alpha * R1
+            T_interp = (1 - alpha) * T0 + alpha * T1
+
+            style_alpha = i / total_frames
+            features_interp = (1 - style_alpha) * start_feature + style_alpha * end_feature
             override_color = gaussians.decoder(features_interp)
 
-            R_interp = (1 - alpha) * R_start + alpha * R_end
-            T_interp = (1 - alpha) * T_start + alpha * T_end
-
-            # build virtual Camera
-            cam = Camera(
+            cam_clone = Camera(
                 colmap_id=None,
                 R=R_interp.cpu().numpy(),
                 T=T_interp.cpu().numpy(),
-                FoVx=view_start.FoVx,
-                FoVy=view_start.FoVy,
+                FoVx=cam0.FoVx,
+                FoVy=cam0.FoVy,
                 image=None,
                 gt_alpha_mask=None,
                 image_name=None,
                 uid=None
             )
-            cam.image_height = view_start.image_height
-            cam.image_width = view_start.image_width
+            cam_clone.image_height = cam0.image_height
+            cam_clone.image_width = cam0.image_width
 
-            # render
-            rendering = render(cam, gaussians, pipeline, background, override_color=override_color)["render"]
+            rendering = render(cam_clone, gaussians, pipeline, background, override_color=override_color)["render"]
             rendering = rendering.clamp(0, 1)
 
-            torchvision.utils.save_image(rendering, os.path.join(render_path, f'{i:04d}.png'))
+            save_path = os.path.join(render_path, f'{i:04d}.png')
+            torchvision.utils.save_image(rendering, save_path)
+
+
 
 
 if __name__ == "__main__":
@@ -119,6 +120,8 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=10, help="Number of interpolation steps")
     parser.add_argument("--quiet", action="store_true", help="Reduce output")
     parser.add_argument("--target_style_img_path", type=str, default=None, help="Optional: Path to target style image")
+    parser.add_argument("--interp_per_cam", type=int, default=5, help="Number of interpolation steps between each camera pair")
+
 
     args = get_combined_args(parser)
 
@@ -130,8 +133,7 @@ if __name__ == "__main__":
     dataset=model.extract(args),
     pipeline=pipeline.extract(args),
     style_img_path=args.style_img_path,
-    view_id_start=args.view_id_start,
-    view_id_end=args.view_id_end,
     steps=args.steps,
+    interp_per_cam=args.interp_per_cam,
     target_style_img_path=args.target_style_img_path
     )
