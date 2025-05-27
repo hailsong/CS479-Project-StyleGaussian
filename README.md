@@ -1,4 +1,52 @@
-# [*SIGGRAPH Asia 2024 (Technical Communications)*] StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting
+
+# 2025 CS479 Project : Implementation of StyleGaussian (SIGGRAPH Asia 2024)
+
+
+Pretrained model can be found at : [pretrained model](https://drive.google.com/file/d/1f7xMMzEPfS3Su91_fFh4dkioDjkIx7cn/view?usp=drive_link)
+
+압축 해제해서 이렇게 구성해라.
+```
+CS479-Project-StyleGaussian/output/saengsaeng_pretrained
+└── artistic
+    └── default
+        ├── cfg_args/
+        └── chkpnt/
+            └── gaussians.pth       # Pretrained Gaussian model checkpoint
+```
+
+Style image에 대한 폴더는 ./images/ 에서 확인할 수 있다. 
+We use the [WikiArt Dataset](https://www.kaggle.com/datasets/ipythonx/wikiart-gangogh-creating-art-gan) as the style images dataset.
+
+
+
+```
+# Usage:
+python main.py \
+  -m ./output/<MODEL_NAME>/artistic/default \
+  --style_img_path <STYLE_IMAGE_1> \
+  --target_style_img_path <STYLE_IMAGE_2>
+
+# Example:
+python main.py \
+  -m ./output/saengsaeng/artistic/default \
+  --style_img_path images/22.jpg \
+  --target_style_img_path images/43.jpg
+```
+
+This code will automatically render all images for the video. After generating images with python code, use render.sh.
+It will generate looped video output as our final rendered video.
+
+
+```
+# Usage:
+bash make_video.sh <MODEL_NAME> <STYLE_IMAGE_1> <STYLE_IMAGE_2>
+
+# Example:
+bash make_video.sh saengsaeng 22 43
+```
+
+------
+# Original README.md : [*SIGGRAPH Asia 2024 (Technical Communications)*] StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting
 
 ## [Project page](https://kunhao-liu.github.io/StyleGaussian/) |  [Paper](https://arxiv.org/abs/2403.07807)
 
