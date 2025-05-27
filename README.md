@@ -1,5 +1,5 @@
 
-# 2025 CS479 Project : Implementation of StyleGaussian (SIGGRAPH Asia 2024)
+# 2025 CS479 Rendering Contest : Implementation of StyleGaussian (SIGGRAPH Asia 2024)
 
 
 Pretrained model can be found at : [pretrained model](https://drive.google.com/file/d/1f7xMMzEPfS3Su91_fFh4dkioDjkIx7cn/view?usp=drive_link)
