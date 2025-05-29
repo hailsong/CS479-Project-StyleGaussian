@@ -41,13 +41,15 @@ To use your own styles, simply place your chosen images in the ./images/ directo
 
 ## 2. Quick Start
 ### 2.1 Basic Inference
+
 ```
 python main.py \
   -m ./output/<MODEL_NAME>/artistic/default \
   --style_img_path <STYLE_IMAGE_1> \
   --target_style_img_path <STYLE_IMAGE_2>
 ```
-**Example:**
+
+- **Example:**
 ```
 python main.py \
   -m ./output/saengsaeng/artistic/default \
@@ -61,14 +63,14 @@ After generating the images, use `make_video.sh` to produce the final looping vi
 
 ### 2.2 Generate Video Output
 
-After rendering the images, run the following script to generate a looping video:
+- After rendering the images, run the following script to generate a looping video:
 
 ```
 # Usage:
 bash make_video.sh <MODEL_NAME> <STYLE_IMAGE_1> <STYLE_IMAGE_2>
 ```
 
-**Example:**
+- **Example:**
 
 ```
 bash make_video.sh saengsaeng 22 43
@@ -100,45 +102,51 @@ conda activate stylegaussian
 ```
 Alternatively, you can use conda if mamba is not available.
 
+
 ### 3.2 Quick Start
 [Datasets and Checkpoints (Google Drive)](https://drive.google.com/drive/folders/1xHGXniVL3nh6G7pKDkZR1SJlfvo4YB1J?usp=sharing)
 Please download the pre-processed datasets and put them in the `datasets` folder. We also provide the pre-trained checkpoints, which should be put in the `output` folder. If you change the location of the datasets or the location of the checkpoints, please modify the `model_path` or `source_path` accordingly in the `cfg_args` in the checkpoint folder.
 
+
 #### 3.2.1 Interactive Remote Viewer
 
 The original StyleGaussian repository provides an interactive web-based viewer based on [Viser](https://github.com/nerfstudio-project/viser). 
-To launch the viewer:
+
+- To launch the viewer:
 
 ```bash
 python viewer.py -m [model_path] --style_folder [style_folder] --viewer_port [viewer_port]
 ```
 
-Example:
+- Example:
 ```
 python viewer.py -m output/train/artistic/default --style_folder images --viewer_port 8080
 ```
 
 where `model_path` is the path to the pre-trained model, named as `output/[scene_name]/artistic/[exp_name]`, `style_folder` is the folder containing the style images, and `viewer_port` is the port number for the viewer. `--style_folder` and `--viewer_port` are optional arguments.
 
+
 #### 3.2.2 Inference Rendering
 
 The original repository provides inference rendering using `render.py` with either a single style image or a set of four images for style interpolation.
 
-**Single Style Transfer:**
+- **Single Style Transfer:**
 ```
 python render.py -m [model_path] --style [style_image_path]
 ```
-**Example:**
+
+- **Example:**
 ```
 python render.py -m output/train/artistic/default --style images/0.jpg
 ```
-**Style Interpolation (4 images):**
+
+- **Style Interpolation (4 images):**
 
 ```
 python render.py -m [model_path] --style image1.jpg image2.jpg image3.jpg image4.jpg
 ```
 
-**The rendered images are saved in:**
+- **The rendered images are saved in:**
 ```
 output/[scene_name]/artistic/[exp_name]/train/
 ```
@@ -147,9 +155,12 @@ or
 .../style_interpolation/
 ```
 
+
 ### 3.3 Acknowledgements
 
 Our work is based on [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting) and [StyleRF](https://github.com/Kunhao-Liu/StyleRF). We thank the authors for their great work and open-sourcing the code.
+
+
 
 ### 3.4 Citation
 
