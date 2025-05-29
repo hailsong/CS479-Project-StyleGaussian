@@ -81,6 +81,8 @@ This will output a stylized looping video in the `videos/` folder, combining all
 
 ## 3. About the Original Paper
 
+https://github.com/Kunhao-Liu/StyleGaussian/assets/63272695/d6dfda95-b272-42ff-b855-e16801f594a9
+
 This project is based on [**StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting (SIGGRAPH Asia 2024)**](https://arxiv.org/abs/2403.07807).
 
 StyleGaussian proposes a real-time 3D style transfer pipeline using 3D Gaussian Splatting, achieving multi-view consistency and fast rendering.
