@@ -1,5 +1,6 @@
 
 # 2025 CS479 Rendering Contest : Implementation of StyleGaussian (SIGGRAPH Asia 2024)
+## 3SGS : SaengSaeng Stylized Gaussian Splatting
 
 Implementation of StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting (SIGGRAPH Asia 2024) as part of the CS479 Rendering Contest.
 
@@ -7,9 +8,21 @@ This project enables real-time 3D style transfer using 3D Gaussian Splatting and
 
 Pretrained model can be found at : [pretrained model](https://drive.google.com/file/d/1f7xMMzEPfS3Su91_fFh4dkioDjkIx7cn/view?usp=drive_link)
 
+---
 
-## Project Structure & Setup
-### Pretrained Model
+## 0. Environment Setup
+
+We recommend using `mamba` or `conda` to set up the environment:
+
+```
+mamba env create -f environment.yml -n stylegaussian
+conda activate stylegaussian
+```
+
+---
+
+## 1. Project Structure & Setup
+### 1.1 Pretrained Model
 Download the pretrained model from Google Drive and extract it to:
 
 ```
@@ -21,13 +34,14 @@ CS479-Project-StyleGaussian/output/saengsaeng_pretrained
             └── gaussians.pth       # Pretrained Gaussian model checkpoint
 ```
 
-### Style Images
+### 1.2 Style Images
 We use style images from the [WikiArt Dataset](https://www.kaggle.com/datasets/ipythonx/wikiart-gangogh-creating-art-gan) as the style images dataset.
 To use your own styles, simply place your chosen images in the ./images/ directory.
 
+---
 
-## Quick Start
-### Basic Inference
+## 2. Quick Start
+### 2.1 Basic Inference
 ```
 python main.py \
   -m ./output/<MODEL_NAME>/artistic/default \
@@ -46,7 +60,7 @@ This code will automatically render all images for the video. After generating i
 It will generate looped video output as our final rendered video.
 
 
-### Generate Video Output
+### 2.2 Generate Video Output
 After rendering the images, run the following script to generate a looping video:
 ```
 # Usage:
@@ -60,148 +74,85 @@ bash make_video.sh saengsaeng 22 43
 ```
 This will output a stylized video in the videos/ folder.
 
+---
 
-------
-# About the Original Paper
-StyleGaussian introduces a real-time 3D style transfer pipeline using Gaussian Splatting, supporting fast rendering and consistent stylization across multiple views.
+## 3. About the Original Paper
 
-Original README.md : [*SIGGRAPH Asia 2024 (Technical Communications)*] StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting
+This project is based on [**StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting (SIGGRAPH Asia 2024)**](https://arxiv.org/abs/2403.07807).
 
-## [Project page](https://kunhao-liu.github.io/StyleGaussian/) |  [Paper](https://arxiv.org/abs/2403.07807)
+StyleGaussian proposes a real-time 3D style transfer pipeline using 3D Gaussian Splatting, achieving multi-view consistency and fast rendering.
 
-This repository contains a pytorch implementation for the paper: [StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting](https://arxiv.org/abs/2403.07807). StyleGaussian is a novel 3D style transfer pipeline that enables instant style transfer while preserving real-time rendering and strict multi-view consistency. 
+- [Original Paper (arXiv)](https://arxiv.org/abs/2403.07807)
+- [Project Page](https://kunhao-liu.github.io/StyleGaussian/)
+- [Official Codebase](https://github.com/Kunhao-Liu/StyleGaussian)
 
-![teaser](https://kunhao-liu.github.io/StyleGaussian/resources/teaser.jpg)
+In our CS479 Rendering Contest project, we utilized the pretrained model and simplified the pipeline to focus on **style transfer inference and stylized video generation**.
 
 
 ---
 
-## Contents
-- [1 Installation](#1-installation)
-- [2 Quick Start](#2-quick-start)
-  - [2.1 Interactive Remote Viewer](#21-interactive-remote-viewer)
-  - [2.2 Inference Rendering](#22-inference-rendering)
-- [3 Training](#3-training)
-  - [3.1 Train from Scratch](#31-train-from-scratch)
-  - [3.2 Train Step by Step](#32-train-step-by-step)
-  - [3.3 Train with Initialization](#33-train-with-initialization)
-- [4 Acknowledgements](#4-acknowledgements)
-- [5 Citation](#5-citation)
+### 3.1 Installation (from Original Repo)
 
-## 1 Installation
+To set up the environment, we follow the original repository’s setup:
 
-We use [Mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) to manage the environment for its quick speed, while Conda can also be used. 
-```bash
-mamba env create -f environment.yml -n stylegaussian
 ```
+mamba env create -f environment.yml -n stylegaussian
+conda activate stylegaussian
+```
+Alternatively, you can use conda if mamba is not available.
 
-## 2 Quick Start
-
-[Datasets and Checkpoints (Google Drive)](https://drive.google.com/drive/folders/1xHGXniVL3nh6G7pKDkZR1SJlfvo4YB1J?usp=sharing)
-
+### 3.2 Quick Start
+- [Datasets and Checkpoints (Google Drive)](https://drive.google.com/drive/folders/1xHGXniVL3nh6G7pKDkZR1SJlfvo4YB1J?usp=sharing)
 Please download the pre-processed datasets and put them in the `datasets` folder. We also provide the pre-trained checkpoints, which should be put in the `output` folder. If you change the location of the datasets or the location of the checkpoints, please modify the `model_path` or `source_path` accordingly in the `cfg_args` in the checkpoint folder.
 
-### 2.1 Interactive Remote Viewer
+3.2.1 Interactive Remote Viewer
 
-https://github.com/Kunhao-Liu/StyleGaussian/assets/63272695/d6dfda95-b272-42ff-b855-e16801f594a9
+The original StyleGaussian repository provides an interactive web-based viewer based on [Viser](https://github.com/nerfstudio-project/viser). 
+To launch the viewer:
 
-Our interactive remote viewer is based on [Viser](https://github.com/nerfstudio-project/viser). To start the viewer, run the following command:
 ```bash
 python viewer.py -m [model_path] --style_folder [style_folder] --viewer_port [viewer_port]
+```
 
-# for example:
+Example:
+```
 python viewer.py -m output/train/artistic/default --style_folder images --viewer_port 8080
 ```
+
 where `model_path` is the path to the pre-trained model, named as `output/[scene_name]/artistic/[exp_name]`, `style_folder` is the folder containing the style images, and `viewer_port` is the port number for the viewer. `--style_folder` and `--viewer_port` are optional arguments.
 
-#### Usage:
- 1. **Rendering Settings.** Use the mouse to rotate the camera, and use the mouse wheel to zoom in and out. Use `WASD` to move the camera, `QE` to move up and down. You can choose the viewpoint from the training views. Click `Reset View` to reset the up direction.  You can also change the rendering resolution and image quality which affect the rendering speed as the refrasing speed is limited by the internet speed. 
- 2. **Style Transfer.** The rendering will start once you specify the style image path in `Style Image` text box and the style will be transferred instantly. The `Random Style` button will randomly select a style image from the style folder. Click the `Display Style Image` button to display the style image at the lower right corner.
- 3. **Style Interpolation.** You can interpolate between two style images by specifying the image paths of the two style images in `Style 1` and `Style 2`. The interpolation ratio can be adjusted by the slider. The  `Style 1` image is displayed at the lower left corner and the `Style 2` image is displayed at the lower right corner.
+3.2.2 Interactive Remote Viewer
 
+The original repository provides inference rendering using `render.py` with either a single style image or a set of four images for style interpolation.
 
-### 2.2 Inference Rendering
-
-#### 1. Style Transfer
-You can perform style transfer on a scene with a single style image by:
-```bash
-python render.py -m [model_path] --style [style_image_path] 
-
-# for example:
+Single Style Transfer:
+```
+python render.py -m [model_path] --style [style_image_path]
+```
+Example:
+```
 python render.py -m output/train/artistic/default --style images/0.jpg
 ```
-where `model_path` is the path to the pre-trained model, named as `output/[scene_name]/artistic/[exp_name]`, and `style_image_path` is the path to the style image. The rendered stylized multi-view images will be saved in the `output/[scene_name]/artistic/[exp_name]/train` folder.
+Style Interpolation (4 images):
 
-#### 2. Style Interpolation
-You can perform style interpolation on a scene with **four** style images by:
-```bash
-python render.py -m [model_path] --style [style_image_path1] [style_image_path2] [style_image_path3] [style_image_path4]
-
-# for example:
-python render.py -m output/train/artistic/default --style images/0.jpg images/1.jpg images/2.jpg images/3.jpg
 ```
-where `model_path` is the path to the pre-trained model, named as `output/[scene_name]/artistic/[exp_name]`, and `style_image_path1`, `style_image_path2`, `style_image_path3`, `style_image_path4` are the paths to the four style images. The rendered interpolated stylized visualizations will be saved in the `output/[scene_name]/artistic/[exp_name]/style_interpolation` folder.
-
-
-## 3 Training
-We use the [WikiArt Dataset](https://www.kaggle.com/datasets/ipythonx/wikiart-gangogh-creating-art-gan) as the style images dataset.
-
-### 3.1 Train from Scratch
-You can train the model from scratch by:
-```bash
-python train.py --data [dataset_path] --wikiartdir [wikiart_path] --exp_name [exp_name]
-
-# for example:
-python train.py --data datasets/train --wikiartdir datasets/wikiart --exp_name default
+python render.py -m [model_path] --style image1.jpg image2.jpg image3.jpg image4.jpg
 ```
-where `dataset_path` is the path to the training dataset, `wikiart_path` is the path to the WikiArt dataset, and `exp_name` is the name of the experiment. The training process will be saved in the `output/[scene_name]/artistic/[exp_name]` folder. `--exp_name` is an optional argument.
 
-### 3.2 Train Step by Step
-Alternatively, you can train the model step by step. StyleGaussian is trained in three steps: *reconstruction training*, *feature embedding training*, and *style transfer training*. These three steps can be trained separately by:
-
-#### 1. Reconstruction Training
-```bash
-python train_reconstruction.py -s [dataset_path]
-
-# for example:
-python train_reconstruction.py -s datasets/train
+The rendered images are saved in:
 ```
-The trained reconstruction model will be saved in the `output/[scene_name]/reconstruction` folder.
-
-#### 2. Feature Embedding Training
-```bash
-python train_feature.py -s [dataset_path] --ply_path [ply_path]
-
-# for example:
-python train_feature.py -s datasets/train --ply_path output/train/reconstruction/default/point_cloud/iteration_30000/point_cloud.ply
+output/[scene_name]/artistic/[exp_name]/train/
 ```
-where `dataset_path` is the path to the training dataset, and `ply_path` is the path to the 3D Gaussians reconstructed from the reconstruction training stage, name as `output/[scene_name]/reconstruction/[exp_name]/point_cloud/iteration_30000/point_cloud.ply`. The trained feature embedding model will be saved in the `output/[scene_name]/feature` folder.
-
-
-#### 3. Style Transfer Training
-```bash
-python train_artistic.py -s [dataset_path] --wikiartdir [wikiart_path] --ckpt_path [feature_ckpt_path] --style_weight [style_weight] 
-
-# for example:
-python train_artistic.py -s datasets/train --wikiartdir datasets/wikiart --ckpt_path output/train/feature/default/chkpnt/feature.pth --style_weight 10
+or
 ```
-where `dataset_path` is the path to the training dataset, `wikiart_path` is the path to the WikiArt dataset, `feature_ckpt_path` is the path to the checkpoint of the feature embedding model, named as `output/[scene_name]/feature/[exp_name]/chkpnt/feature.pth`, and `style_weight` is the weight for the style loss. The trained style transfer model will be saved in the `output/[scene_name]/artistic/[exp_name]` folder. `--style_weight` is an optional argument.
-
-### 3.3 Train with Initialization
-You can save the training time of the style transfer training stage by initializing the model with the trained model of another scene by:
-```bash
-python train_artistic.py -s [dataset_path] --wikiartdir [wikiart_path] --ckpt_path [feature_ckpt_path] --style_weight [style_weight] --decoder_path [init_ckpt_path]
-
-# for example:
-python train_artistic.py -s datasets/train --wikiartdir datasets/wikiart --ckpt_path output/train/feature/default/chkpnt/feature.pth --style_weight 10 --decoder_path output/truck/artistic/default/chkpnt/gaussians.pth
+.../style_interpolation/
 ```
-where `dataset_path` is the path to the training dataset, `wikiart_path` is the path to the WikiArt dataset, `feature_ckpt_path` is the path to the checkpoint of the feature embedding model, named as `output/[scene_name]/feature/[exp_name]/chkpnt/feature.pth`, `style_weight` is the weight for the style loss, and `init_ckpt_path` is the path to the checkpoint of the trained model of another scene, named as `output/[another_scene]/artistic/[exp_name]/chkpnt/gaussians.pth`. The trained style transfer model will be saved in the `output/[scene_name]/artistic/[exp_name]` folder.
 
-## 4 Acknowledgements
+### 3.3 Acknowledgements
 
 Our work is based on [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting) and [StyleRF](https://github.com/Kunhao-Liu/StyleRF). We thank the authors for their great work and open-sourcing the code.
 
-## 5 Citation
+### 3.4 Citation
 
 ```
 @article{liu2023stylegaussian,
