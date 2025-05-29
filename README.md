@@ -1,10 +1,17 @@
 
 # 2025 CS479 Rendering Contest : Implementation of StyleGaussian (SIGGRAPH Asia 2024)
 
+Implementation of StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting (SIGGRAPH Asia 2024) as part of the CS479 Rendering Contest.
+
+This project enables real-time 3D style transfer using 3D Gaussian Splatting and style images from WikiArt. It supports both style transfer and interpolation across multiple viewpoints.
 
 Pretrained model can be found at : [pretrained model](https://drive.google.com/file/d/1f7xMMzEPfS3Su91_fFh4dkioDjkIx7cn/view?usp=drive_link)
 
-압축 해제해서 이렇게 구성해라.
+
+## Project Structure & Setup
+### Pretrained Model
+Download the pretrained model from Google Drive and extract it to:
+
 ```
 CS479-Project-StyleGaussian/output/saengsaeng_pretrained
 └── artistic
@@ -14,19 +21,21 @@ CS479-Project-StyleGaussian/output/saengsaeng_pretrained
             └── gaussians.pth       # Pretrained Gaussian model checkpoint
 ```
 
-Style image에 대한 폴더는 ./images/ 에서 확인할 수 있다. 
-We use the [WikiArt Dataset](https://www.kaggle.com/datasets/ipythonx/wikiart-gangogh-creating-art-gan) as the style images dataset.
+### Style Images
+We use style images from the [WikiArt Dataset](https://www.kaggle.com/datasets/ipythonx/wikiart-gangogh-creating-art-gan) as the style images dataset.
+To use your own styles, simply place your chosen images in the ./images/ directory.
 
 
-
+## Quick Start
+### Basic Inference
 ```
-# Usage:
 python main.py \
   -m ./output/<MODEL_NAME>/artistic/default \
   --style_img_path <STYLE_IMAGE_1> \
   --target_style_img_path <STYLE_IMAGE_2>
-
-# Example:
+```
+Example:
+```
 python main.py \
   -m ./output/saengsaeng/artistic/default \
   --style_img_path images/22.jpg \
@@ -37,16 +46,26 @@ This code will automatically render all images for the video. After generating i
 It will generate looped video output as our final rendered video.
 
 
+### Generate Video Output
+After rendering the images, run the following script to generate a looping video:
 ```
 # Usage:
 bash make_video.sh <MODEL_NAME> <STYLE_IMAGE_1> <STYLE_IMAGE_2>
-
-# Example:
-bash make_video.sh saengsaeng 22 43
 ```
 
+Example:
+
+```
+bash make_video.sh saengsaeng 22 43
+```
+This will output a stylized video in the videos/ folder.
+
+
 ------
-# Original README.md : [*SIGGRAPH Asia 2024 (Technical Communications)*] StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting
+# About the Original Paper
+StyleGaussian introduces a real-time 3D style transfer pipeline using Gaussian Splatting, supporting fast rendering and consistent stylization across multiple views.
+
+Original README.md : [*SIGGRAPH Asia 2024 (Technical Communications)*] StyleGaussian: Instant 3D Style Transfer with Gaussian Splatting
 
 ## [Project page](https://kunhao-liu.github.io/StyleGaussian/) |  [Paper](https://arxiv.org/abs/2403.07807)
 
