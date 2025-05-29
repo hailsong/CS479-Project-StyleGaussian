@@ -150,8 +150,8 @@ python render.py -m [model_path] --style image1.jpg image2.jpg image3.jpg image4
 ```
 output/[scene_name]/artistic/[exp_name]/train/
 ```
-    - or
 ```
+# or
 .../style_interpolation/
 ```
 
