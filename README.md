@@ -13,6 +13,10 @@ Pretrained model can be found at : [pretrained model](https://drive.google.com/f
 https://github.com/user-attachments/assets/c3dbede3-503c-4c08-9340-b7ed39f56b83
 
 
+Uploading 3DGS prototype 3.mp4…
+
+
+
 
 ## 0. Environment Setup
 
