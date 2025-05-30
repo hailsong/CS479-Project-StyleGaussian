@@ -9,10 +9,6 @@ Pretrained model can be found at : [pretrained model](https://drive.google.com/f
 
 ------
 
-
-https://github.com/user-attachments/assets/c3dbede3-503c-4c08-9340-b7ed39f56b83
-
-
 https://github.com/user-attachments/assets/f497e90c-4dd8-4deb-9874-da70d99043cb
 
 
