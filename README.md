@@ -38,7 +38,7 @@ CS479-Project-StyleGaussian/output/saengsaeng_pretrained
             └── gaussians.pth       # Pretrained Gaussian model checkpoint
 ```
 
-### 1.2 Style Images
+### 1.2 Style Images (Optional, for training)
 We use style images from the [WikiArt Dataset](https://www.kaggle.com/datasets/ipythonx/wikiart-gangogh-creating-art-gan) as the style images dataset.
 To use your own styles, simply place your chosen images in the ./images/ directory.
 
