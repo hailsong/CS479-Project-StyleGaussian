@@ -16,6 +16,7 @@ from gaussian_renderer import render
 from scene.cameras import Camera
 from utils.general_utils import get_image_paths
 
+import time
 
 class ViserViewer:
     def __init__(self, gaussians, pipeline, background, override_color, training_cams, wikiart_img_paths=None, viewer_port='8080'):
@@ -32,6 +33,12 @@ class ViserViewer:
         self.vgg_encoder = VGGEncoder().cuda()
 
         self.display_interpolation = False
+
+        self.style_img = None
+        self.style_img0 = None
+        self.style_img1 = None
+
+        self.last_sent_time = 0.0
 
         # Set up the server, init GUI elements
         self.server = viser.ViserServer(port=self.port)
@@ -72,27 +79,58 @@ class ViserViewer:
                 self.random_style_button = self.server.add_gui_button("Random Style")
 
         
-        with self.server.add_gui_folder("Style Interpolation"):
-            self.style_path_1 = self.server.add_gui_text(
-                "Style 1",
-                initial_value="",
-                hint="Path to style image",
-            )
+        # with self.server.add_gui_folder("Style Interpolation"):
+        #     self.style_path_1 = self.server.add_gui_text(
+        #         "Style 1",
+        #         initial_value="",
+        #         hint="Path to style image",
+        #     )
 
-            self.style_path_2 = self.server.add_gui_text(
-                "Style 2",
-                initial_value="",
-                hint="Path to style image",
-            )
+        #     self.style_path_2 = self.server.add_gui_text(
+        #         "Style 2",
+        #         initial_value="",
+        #         hint="Path to style image",
+        #     )
 
-            self.interpolation_ratio = self.server.add_gui_slider(
-                "Interpolation Ratio",
+        #     self.interpolation_ratio = self.server.add_gui_slider(
+        #         "Interpolation Ratio",
+        #         min=0,
+        #         max=1,
+        #         step=0.01,
+        #         initial_value=0.5,
+        #     )
+
+
+        with self.server.add_gui_folder("Angle-Based Style Transfer"):
+            self.angle_style_slider = self.server.add_gui_slider(
+                "Angle-Based Style Slider",
                 min=0,
                 max=1,
                 step=0.01,
-                initial_value=0.5,
+                initial_value=0.0,
             )
 
+            self.auto_style_checkbox = self.server.add_gui_checkbox(
+                "Auto Style Slide",
+                initial_value=False
+            )
+            self.auto_style_phase = 0.0
+
+
+
+        # Preload two style images for angle-based interpolation
+        self.style_img_path_22 = "images/22.jpg"
+        self.style_img_path_43 = "images/43.jpg"
+
+        trans = T.Compose([T.Resize(size=(256, 256)), T.ToTensor()])
+        style_img_22 = trans(Image.open(self.style_img_path_22)).cuda()[None, :3, :, :]
+        style_img_43 = trans(Image.open(self.style_img_path_43)).cuda()[None, :3, :, :]
+
+        self.style_feat_22 = self.vgg_encoder(normalize_vgg(style_img_22)).relu3_1
+        self.style_feat_43 = self.vgg_encoder(normalize_vgg(style_img_43)).relu3_1
+        
+        self.style_img_22_vis = resize(style_img_22, (128,128)).squeeze(0)  # shape: [3, 128, 128]
+        self.style_img_43_vis = resize(style_img_43, (128,128)).squeeze(0)
 
         # Handle GUI events
         @self.resolution_slider.on_update
@@ -165,17 +203,23 @@ class ViserViewer:
                 style_img_path = np.random.choice(wikiart_img_paths)
                 self.style_img_path_text.value = str(style_img_path)
 
-        @self.style_path_1.on_update
-        def _(_):
-            style_interpolation()
+        # @self.style_path_1.on_update
+        # def _(_):
+        #     style_interpolation()
 
-        @self.style_path_2.on_update
-        def _(_):
-            style_interpolation()
+        # @self.style_path_2.on_update
+        # def _(_):
+        #     style_interpolation()
 
-        @self.interpolation_ratio.on_update
+        # @self.interpolation_ratio.on_update
+        # def _(_):
+        #     style_interpolation()
+        
+        @self.auto_style_checkbox.on_update
         def _(_):
-            style_interpolation()
+            if self.auto_style_checkbox.value:
+                self.auto_style_phase = 0.0
+                self.angle_style_slider.value = 0.0
 
         def style_interpolation():
             if not self.style_path_1.value or not self.style_path_2.value:
@@ -210,8 +254,51 @@ class ViserViewer:
 
             self.display_interpolation = True
 
+        @self.angle_style_slider.on_update
+        def _(_):
+            self.need_update = True
+
+            with torch.no_grad():  # 🔐 여기 중요!
+                n_views = len(training_cams)
+                idx_f = self.angle_style_slider.value * (n_views - 1)
+                idx0 = int(np.floor(idx_f))
+                idx1 = min(idx0 + 1, n_views - 1)
+                t = idx_f - idx0
+
+                cam0 = training_cams[idx0]
+                cam1 = training_cams[idx1]
+
+                R0 = tf.SO3.from_matrix(cam0.R).as_matrix()
+                T0 = cam0.T
+                R1 = tf.SO3.from_matrix(cam1.R).as_matrix()
+                T1 = cam1.T
+
+                R_interp = (1 - t) * R0 + t * R1
+                T_interp = (1 - t) * T0 + t * T1
+
+                for client in self.server.get_clients().values():
+                    with client.atomic():
+                        client.camera.wxyz = tf.SO3.from_matrix(R_interp).wxyz
+                        client.camera.position = -R_interp @ T_interp
+                        client.camera.up_direction = tf.SO3(client.camera.wxyz) @ np.array([0.0, -1.0, 0.0])
+
+                style_feat = (1 - self.angle_style_slider.value) * self.style_feat_22 + self.angle_style_slider.value * self.style_feat_43
+
+                # 이 두 줄도 중간 결과가 남을 수 있으니 detach & no_grad로 관리
+                style_feat = style_feat.detach()
+                transfered_features = self.gaussians.style_transfer(
+                    self.gaussians.final_vgg_features.detach(), style_feat
+                ).detach()
+                self.override_color = self.gaussians.decoder(transfered_features).detach()
+
+                
     @torch.no_grad()
     def update(self):
+        now = time.time()
+        if now - self.last_sent_time < 0.03:  # 최소 100ms 간격 유지
+            return
+        self.last_sent_time = now
+
         if self.need_update and self.override_color is not None:
             interval = None
             for client in self.server.get_clients().values():
@@ -244,12 +331,15 @@ class ViserViewer:
                 rendering = render(view, self.gaussians, self.pipeline, self.background, override_color=self.override_color)["render"]
                 rendering = rendering.clamp(0, 1)
                 if self.display_style_img.value:
-                    if not self.display_interpolation and self.style_img is not None:
+                    if self.auto_style_checkbox.value:
+                        # 자동 angle-based 모드에서는 22/43 보여줌
+                        rendering[:, -128:, -128:] = self.style_img_43_vis
+                        rendering[:, -128:, :128] = self.style_img_22_vis
+                    elif not self.display_interpolation and self.style_img is not None:
                         rendering[:, -128:, -128:] = self.style_img.squeeze(0)
                     elif self.style_path_1.value and self.style_path_2.value:
                         rendering[:, -128:, -128:] = self.style_img1.squeeze(0)
                         rendering[:, -128:, :128] = self.style_img0.squeeze(0)
-                    
                 end_cuda.record()
                 torch.cuda.synchronize()
                 interval = start_cuda.elapsed_time(end_cuda)/1000.
@@ -262,6 +352,12 @@ class ViserViewer:
                 self.fps.value = f"{1.0 / np.mean(self.render_times):.3g}"
             else:
                 self.fps.value = "NA"
+
+        if self.auto_style_checkbox.value:
+            # Sin 곡선을 이용한 부드러운 반복
+            self.auto_style_phase += 0.02  # 속도 조절
+            slider_value = np.sin(self.auto_style_phase - 0.5*torch.pi) / 2 + 0.5
+            self.angle_style_slider.value = float(slider_value)
 
 
 @torch.no_grad()

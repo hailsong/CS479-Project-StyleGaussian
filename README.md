@@ -7,6 +7,12 @@ This project enables real-time 3D style transfer using 3D Gaussian Splatting and
 
 Pretrained model can be found at : [pretrained model](https://drive.google.com/file/d/1f7xMMzEPfS3Su91_fFh4dkioDjkIx7cn/view?usp=drive_link)
 
+
+For rendering-only usage, please refer to the following sections:
+
+- 0 Environment Setup
+- 1.1 Pretrained Model
+- 3 Interactive Viewer
 ------
 
 https://github.com/user-attachments/assets/f497e90c-4dd8-4deb-9874-da70d99043cb
@@ -82,9 +88,34 @@ bash make_video.sh saengsaeng 22 43
 ```
 This will output a stylized looping video in the `videos/` folder, combining all rendered frames.
 
+
+
 ---
 
-## 3. About the Original Paper
+## 3. Interactive Web Viewer
+
+We provide an interactive real-time **style transfer viewer** using the [Viser](https://github.com/nerfstudio-project/viser) interface. This allows you to explore multi-view 3D stylization results directly in your web browser.
+
+To launch the viewer:
+
+```
+bash
+python viewer.py -m output/saengsaeng/artistic/default --style_folder images --viewer_port 8080
+```
+This command starts a web viewer at:
+http://localhost:8080 (or http://<your-ip>:8080 if accessed over a LAN or tunnel).
+
+💡 If you're running this on a remote server, make sure to forward or expose the correct port. For local networks, access http://<host-machine-IP>:8080 from another device.
+
+🔧 Viewer Features
+- Rendering Settings
+- Style Transfer
+- Angle-Based Style Transfer (Same with our project video output)
+
+
+---
+
+## 4. About the Original Paper
 
 https://github.com/Kunhao-Liu/StyleGaussian/assets/63272695/d6dfda95-b272-42ff-b855-e16801f594a9
 
@@ -99,7 +130,7 @@ StyleGaussian proposes a real-time 3D style transfer pipeline using 3D Gaussian 
 In our CS479 Rendering Contest project, we utilized the pretrained model and simplified the pipeline to focus on **style transfer inference and stylized video generation**.
 
 
-### 3.1 Installation (from Original Repo)
+### 4.1 Installation (from Original Repo)
 
 To set up the environment, we follow the original repository’s setup:
 
@@ -110,12 +141,12 @@ conda activate stylegaussian
 Alternatively, you can use conda if mamba is not available.
 
 
-### 3.2 Quick Start
+### 4.2 Quick Start
 [Datasets and Checkpoints (Google Drive)](https://drive.google.com/drive/folders/1xHGXniVL3nh6G7pKDkZR1SJlfvo4YB1J?usp=sharing)
 Please download the pre-processed datasets and put them in the `datasets` folder. We also provide the pre-trained checkpoints, which should be put in the `output` folder. If you change the location of the datasets or the location of the checkpoints, please modify the `model_path` or `source_path` accordingly in the `cfg_args` in the checkpoint folder.
 
 
-#### 3.2.1 Interactive Remote Viewer
+#### 4.2.1 Interactive Remote Viewer
 
 The original StyleGaussian repository provides an interactive web-based viewer based on [Viser](https://github.com/nerfstudio-project/viser). 
 
@@ -133,7 +164,7 @@ python viewer.py -m output/train/artistic/default --style_folder images --viewer
 where `model_path` is the path to the pre-trained model, named as `output/[scene_name]/artistic/[exp_name]`, `style_folder` is the folder containing the style images, and `viewer_port` is the port number for the viewer. `--style_folder` and `--viewer_port` are optional arguments.
 
 
-#### 3.2.2 Inference Rendering
+#### 4.2.2 Inference Rendering
 
 The original repository provides inference rendering using `render.py` with either a single style image or a set of four images for style interpolation.
 
@@ -163,13 +194,13 @@ output/[scene_name]/artistic/[exp_name]/train/
 ```
 
 
-### 3.3 Acknowledgements
+### 4.3 Acknowledgements
 
 Our work is based on [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting) and [StyleRF](https://github.com/Kunhao-Liu/StyleRF). We thank the authors for their great work and open-sourcing the code.
 
 
 
-### 3.4 Citation
+### 4.4 Citation
 
 ```
 @article{liu2023stylegaussian,
