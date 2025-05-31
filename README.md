@@ -63,7 +63,7 @@ python main.py \
 - **Example:**
 ```
 python main.py \
-  -m ./output/saengsaeng/artistic/default \
+  -m ./output/saengsaeng_pretrained/artistic/default \
   --style_img_path images/22.jpg \
   --target_style_img_path images/43.jpg
 ```
