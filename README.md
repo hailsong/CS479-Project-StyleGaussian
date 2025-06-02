@@ -5,6 +5,8 @@ Implementation of StyleGaussian: Instant 3D Style Transfer with Gaussian Splatti
 
 This project enables real-time 3D style transfer using 3D Gaussian Splatting and style images from WikiArt. It supports both style transfer and interpolation across multiple viewpoints.
 
+For the details, please refer the (project report)[./project_report.pdf]
+
 Pretrained model can be found at : [pretrained model](https://drive.google.com/file/d/1f7xMMzEPfS3Su91_fFh4dkioDjkIx7cn/view?usp=drive_link)
 
 
